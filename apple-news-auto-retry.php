@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Apple News Auto Retry
- * Plugin URI:  https://github.com/MailOnline/apple-news-auto-retry/
+ * Plugin URI:  https://github.com/MailOnline/mdt-apple-news-auto-retry/
  * Description: Auto retry pending Apple News articles
  * Version:     0.0.1
  * Author:      Metro.co.uk
- * Author URI:  https://github.com/MailOnline/apple-news-auto-retry/graphs/contributors
+ * Author URI:  https://github.com/MailOnline/mdt-apple-news-auto-retry/graphs/contributors
  */
 
 namespace MDT\Apple_News_Auto_Retry;
