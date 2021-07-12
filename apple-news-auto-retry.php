@@ -185,7 +185,7 @@ class Main {
 		self::clear_existing_retry($post_id);
 
 		//Allow clients to prevent retry scheduling e.g when an article isn't suitable
-		$should_schedule = apply_filters(self::FILTER_NAME_SHOULD_SCHEDULE, true);
+		$should_schedule = apply_filters(self::FILTER_NAME_SHOULD_SCHEDULE, true, $post_id);
 
 		if($should_schedule){
 			self::schedule_single_event($post_id);
