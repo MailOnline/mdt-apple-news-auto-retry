@@ -60,11 +60,13 @@ Allows for preventing auto retry scheduling
 **`$post_id`**
 (int) Post ID
 
-### `mdt_an_auto_retry_schedule_delay`
+### `mdt_an_auto_retry_schedule_interval`
 
-**`apply_filters('mdt_an_auto_retry_schedule_delay', int $delay;`**
+Adjust the auto retry interval
+
+**`apply_filters('mdt_an_auto_retry_schedule_delay', int $interval;`**
 
 #### Parameters
 
-**`$delay`**
+**`$interval`**
 (int) Time in seconds to schedule the future event for (default: 120)

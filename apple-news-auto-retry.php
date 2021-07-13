@@ -35,7 +35,7 @@ class Main {
 	 *
 	 * @var string
 	 */
-	const FILTER_NAME_SCHEDULE_DELAY = 'mdt_an_auto_retry_schedule_delay';
+	const FILTER_NAME_SCHEDULE_INTERVAL = 'mdt_an_auto_retry_schedule_interval';
 
 	/**
 	 * Retry success action name
@@ -198,8 +198,8 @@ class Main {
 	 * @param int $post_id Post ID
 	 */
 	public static function schedule_single_event($post_id){
-		$delay = (int) apply_filters(self::FILTER_NAME_SCHEDULE_DELAY, 120);
-		$time = time() + $delay;
+		$interval = (int) apply_filters(self::FILTER_NAME_SCHEDULE_INTERVAL, 120);
+		$time = time() + $interval;
 		wp_schedule_single_event( $time, self::CRON_EVENT, self::get_cron_arguments($post_id) );
 		update_post_meta($post_id, self::META_KEY_SCHEDULED, $time);
 	}
