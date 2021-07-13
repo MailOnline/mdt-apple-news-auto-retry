@@ -23,12 +23,18 @@ class Main {
 	const CRON_EVENT = 'mdt_an_auto_retry_publish';
 
 	/**
+	 * Cron bulk event name
+	 *
+	 * @var string
+	 */
+	const CRON_BULK_EVENT = 'mdt_an_auto_retry_bulk_publish';
+
+	/**
 	 * Should schedule filter name
 	 *
 	 * @var string
 	 */
 	const FILTER_NAME_SHOULD_SCHEDULE = 'mdt_an_auto_retry_should_schedule';
-
 
 	/**
 	 * Should schedule filter name
@@ -65,7 +71,6 @@ class Main {
 	 */
 	const META_KEY_SCHEDULED = 'mdt_an_auto_retry_next_scheduled';
 
-
 	/**
 	 * Last published via plugin meta key name
 	 *
@@ -80,7 +85,6 @@ class Main {
 	 */
 	const MAX_ATTEMPTS = 3;
 
-
 	/**
 	 * Init
 	 */
@@ -94,13 +98,31 @@ class Main {
 	 */
 	public static function add_actions(){
 		if ( class_exists('\Apple_News') && class_exists('\Admin_Apple_Settings')){
+			add_filter( 'cron_schedules', array(__CLASS__, 'cron_add_half_hourly' ));
+
 			add_action( self::CRON_EVENT, array( __CLASS__, 'retry_publish' ), 10 );
+			add_action( self::CRON_BULK_EVENT, array( __CLASS__, 'bulk_retry_publish' ), 10 );
 
 			add_action( 'wp_after_insert_post', array( __CLASS__, 'schedule_auto_retry' ), 100, 2 );
+			if ( ! wp_next_scheduled( self::CRON_BULK_EVENT ) ) {
+				wp_schedule_event( time(), 'mdt_half_hourly', self::CRON_BULK_EVENT );
+			}
 
 			//On successful AN push delete remaining retry events + meta
 			add_action( 'apple_news_after_push', array(__CLASS__, 'clear_existing_retry'), 10 );
+
 		}
+	}
+
+	/**
+	 * Add in a custom WP Cron schedule
+	 */
+	public static function cron_add_half_hourly( $schedules ) {
+		$schedules['mdt_half_hourly'] = array(
+			'interval' => 1800,
+			'display' => __( 'Half Hourly' )
+		);
+		return $schedules;
 	}
 
 
@@ -112,9 +134,11 @@ class Main {
 	public static function retry_publish($post_id){
 		$an_id = get_post_meta( $post_id, 'apple_news_api_id', true );
 		$pending = get_post_meta( $post_id, 'apple_news_api_pending', true );
+		$next = get_post_meta( $post_id, self::META_KEY_SCHEDULED, true);
 
-		//Do not perform sync push if the article already has an apple-news ID and isn't in a pending state
-		if($an_id && !$pending){
+		//Do not perform sync push if the article already has an apple-news ID and isn't in a pending state or isn't
+		//scheduled for an auto retry
+		if($an_id && !$pending && !$next){
 			self::clear_existing_retry($post_id);
 			return;
 		}
@@ -235,6 +259,33 @@ class Main {
 		$cron_args = [$post_id];
 
 		return $cron_args;
+	}
+
+	/**
+	 * Bulk retry all posts modified within the last 40 minutes.
+	 */
+	public static function bulk_retry_publish(){
+		$args = array(
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'date_query' => array(
+				array(
+					'after'    => '40 minutes ago',
+					'inlusive' => true,
+					'column' => 'post_modified'
+				)
+			),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			foreach($query->posts as $id){
+				self::retry_publish($id);
+			}
+		}
 	}
 }
 
