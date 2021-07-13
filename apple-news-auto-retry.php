@@ -100,9 +100,6 @@ class Main {
 
 			//On successful AN push delete remaining retry events + meta
 			add_action( 'apple_news_after_push', array(__CLASS__, 'clear_existing_retry'), 10 );
-
-			//@todo add api for sync publishing
-			//@todo load gutenberg assets
 		}
 	}
 
