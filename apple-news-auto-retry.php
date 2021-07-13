@@ -65,6 +65,14 @@ class Main {
 	 */
 	const META_KEY_SCHEDULED = 'mdt_an_auto_retry_next_scheduled';
 
+
+	/**
+	 * Last published via plugin meta key name
+	 *
+	 * @var string
+	 */
+	const META_KEY_PUBLISHED = 'mdt_an_auto_retry_last_published';
+
 	/**
 	 * Maximum retry attempts
 	 *
@@ -119,6 +127,8 @@ class Main {
 
 		if($result['success']){
 			$share_url = get_post_meta( $post_id, 'apple_news_api_share_url', true);
+			$revision  = get_post_meta( $post_id, 'apple_news_api_revision', true);
+			update_post_meta($post_id, self::META_KEY_PUBLISHED, $revision);
 			do_action(self::ACTION_NAME_RETRY_SUCCESS, $post_id, $share_url, $attempt);
 		} else {
 			do_action(self::ACTION_NAME_RETRY_FAILURE, $post_id, $result['error'], $attempt);
