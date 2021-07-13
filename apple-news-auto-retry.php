@@ -211,9 +211,11 @@ class Main {
 	 * @param int $post_id Post ID
 	 */
 	public static function clear_existing_retry($post_id){
-		wp_clear_scheduled_hook( self::CRON_EVENT, self::get_cron_arguments($post_id));
-		delete_post_meta($post_id, self::META_KEY_ATTEMPTS);
-		delete_post_meta($post_id, self::META_KEY_SCHEDULED);
+		if($post_id){
+			wp_clear_scheduled_hook( self::CRON_EVENT, self::get_cron_arguments($post_id));
+			delete_post_meta($post_id, self::META_KEY_ATTEMPTS);
+			delete_post_meta($post_id, self::META_KEY_SCHEDULED);
+		}
 	}
 
 	/**
