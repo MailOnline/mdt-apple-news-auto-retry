@@ -3,7 +3,7 @@
  * Plugin Name: Apple News Auto Retry
  * Plugin URI:  https://github.com/MailOnline/mdt-apple-news-auto-retry/
  * Description: Auto retry pending Apple News articles
- * Version:     0.0.1
+ * Version:     0.1.4
  * Author:      Metro.co.uk
  * Author URI:  https://github.com/MailOnline/mdt-apple-news-auto-retry/graphs/contributors
  */
@@ -56,6 +56,13 @@ class Main {
 	 * @var string
 	 */
 	const ACTION_NAME_RETRY_FAILURE = 'mdt_an_auto_retry_push_failure';
+
+	/**
+	 * Single Scheduling failure action name
+	 *
+	 * @var string
+	 */
+	const ACTION_NAME_SINGLE_SCHEDULE_FAILURE = 'mdt_an_auto_retry_single_schedule_failure';
 
 	/**
 	 * Attempts meta key name
@@ -172,6 +179,9 @@ class Main {
 		$admin_settings = new \Admin_Apple_Settings();
 		$settings       = $admin_settings->fetch_settings();
 
+		//pretend that the article is out of sync to have the plugin process accordingly in all cases.
+		add_filter( 'apple_news_is_post_in_sync', '__return_false' );
+
 		$action = new \Apple_Actions\Index\Push( $settings, $post_id );
 		$error = false;
 
@@ -180,6 +190,8 @@ class Main {
 		} catch ( \Apple_Actions\Action_Exception $e ) {
 			$error = $e->getMessage();
 		}
+
+		remove_filter( 'apple_news_is_post_in_sync', '__return_false' );
 
 		//if no error from push then cleanup
 		if(!$error){
@@ -231,7 +243,10 @@ class Main {
 	public static function schedule_single_event($post_id){
 		$interval = (int) apply_filters(self::FILTER_NAME_SCHEDULE_INTERVAL, 120);
 		$time = time() + $interval;
-		wp_schedule_single_event( $time, self::CRON_EVENT, self::get_cron_arguments($post_id) );
+		$scheduled = wp_schedule_single_event( $time, self::CRON_EVENT, self::get_cron_arguments($post_id) );
+		if(is_wp_error($scheduled)){
+			do_action(self::ACTION_NAME_SINGLE_SCHEDULE_FAILURE, $post_id, $scheduled->get_error_message());
+		}
 		update_post_meta($post_id, self::META_KEY_SCHEDULED, $time);
 	}
 
