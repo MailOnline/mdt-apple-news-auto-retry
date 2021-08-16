@@ -297,8 +297,12 @@ class Main {
 		$query = new \WP_Query( $args );
 
 		if ( $query->have_posts() ) {
-			foreach($query->posts as $id){
-				self::retry_publish($id);
+			foreach($query->posts as $post_id){
+				$should_schedule = apply_filters(self::FILTER_NAME_SHOULD_SCHEDULE, true, $post_id);
+
+				if($should_schedule){
+					self::retry_publish($post_id);
+				}
 			}
 		}
 	}
