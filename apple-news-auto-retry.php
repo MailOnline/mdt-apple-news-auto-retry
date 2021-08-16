@@ -285,7 +285,8 @@ class Main {
 			'post_status' => 'publish',
 			'date_query' => array(
 				array(
-					'after'    => '40 minutes ago',
+					'before' => '5 minutes ago',
+					'after'    => '45 minutes ago',
 					'inlusive' => true,
 					'column' => 'post_modified'
 				)
