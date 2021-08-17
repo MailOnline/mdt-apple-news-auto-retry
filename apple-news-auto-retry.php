@@ -44,6 +44,13 @@ class Main {
 	const FILTER_NAME_SCHEDULE_INTERVAL = 'mdt_an_auto_retry_schedule_interval';
 
 	/**
+	 * Should retry again after failure filter name
+	 *
+	 * @var string
+	 */
+	const FILTER_NAME_SHOULD_RETRY_AGAIN_ON_FAILURE = 'mdt_an_auto_should_retry_on_failure';
+
+	/**
 	 * Retry success action name
 	 *
 	 * @var string
@@ -160,8 +167,10 @@ class Main {
 			do_action(self::ACTION_NAME_RETRY_SUCCESS, $post_id, $share_url, $attempt);
 		} else {
 			do_action(self::ACTION_NAME_RETRY_FAILURE, $post_id, $result['error'], $attempt);
+
+			$try_again = apply_filters(self::FILTER_NAME_SHOULD_RETRY_AGAIN_ON_FAILURE, true, $post_id, $result['error']);
 			//if failure, schedule for a further retry if below MAX_ATTEMPTS
-			if($attempt < self::MAX_ATTEMPTS){
+			if($try_again && $attempt < self::MAX_ATTEMPTS){
 				self::schedule_single_event($post_id);
 				$attempt++;
 				update_post_meta($post_id, self::META_KEY_ATTEMPTS, $attempt);
@@ -285,7 +294,8 @@ class Main {
 			'post_status' => 'publish',
 			'date_query' => array(
 				array(
-					'after'    => '40 minutes ago',
+					'before' => '5 minutes ago',
+					'after'    => '45 minutes ago',
 					'inlusive' => true,
 					'column' => 'post_modified'
 				)
